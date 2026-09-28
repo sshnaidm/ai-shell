@@ -347,13 +347,16 @@ The question is still required when piping input. Each invocation sends a new qu
 
 [tmux](https://man.openbsd.org/tmux) is a terminal tool that keeps sessions running and can split a terminal into several panels, called panes. AI Shell can read text from the pane where you run `ai`, including output that has scrolled off the screen. This feature requires tmux to be installed and your shell to be running inside it.
 
-Use **`-c`** to send that terminal text with your question. Use **`-n NUMBER`** to include more or less of the earlier output:
+Use **`-c`** to send the text currently visible in your tmux pane with your question. Put a number after `-c` to send more screenfuls. Use **`-n NUMBER`** to choose an exact line limit instead:
 
-- `ai -c ...` sends the visible text plus up to **30 earlier lines** by default.
-- `ai -c -n 100 ...` sends the visible text plus up to **100 earlier lines**. Use this when an error appeared farther back.
-- `ai -c -n 0 ...` sends only the visible text.
+- `ai -c ...` sends the **visible pane**, whatever its height is.
+- `ai -c 3 ...` sends up to **three screenfuls**: the visible pane and two pane heights of earlier output.
+- `ai -n 3 ...` sends only the **last 3 lines**.
+- `ai -n 100 ...` sends up to the **last 100 lines**. Use this when an error appeared farther back.
 
-The number counts lines above the visible screen, so `-n 100` is not a limit of 100 lines in total. It uses whatever history tmux still has. `-n` only has an effect with `-c`; it does not control the answer length or read your shell's command history.
+tmux knows the current pane height; `-c 3` uses three times that height, up to the output still available in tmux history. To see the height yourself, run `tmux display-message -p '#{pane_height}'`. With `-n`, the number limits the total lines attached, including visible text and earlier output. Blank rows below the terminal cursor are ignored. Both counts must be at least 1. You can still combine `-c -n 3` if you like, but `-n 3` is enough. Do not combine `-c 3` with `-n`. Neither option controls the answer length or reads your shell's command history.
+
+If your question starts with a number, quote the whole question so that number is not read as a screen count: `ai -c '3 reasons this failed?'`.
 
 For example, start tmux, run your build, then ask about its output in the same pane:
 
@@ -361,7 +364,9 @@ For example, start tmux, run your build, then ask about its output in the same p
 tmux
 make
 ai -c explain why the build failed
-ai -c -n 100 look at the earlier errors and suggest a fix
+ai -c 3 look at the earlier errors and suggest a fix
+ai -n 3 explain the last three lines
+ai -n 100 look at the earlier errors and suggest a fix
 ```
 
 If you do not use tmux, send the output with a pipe instead. To send exactly the last 100 lines of a log, put `-n 100` on **`tail`**:
@@ -370,13 +375,13 @@ If you do not use tmux, send the output with a pipe instead. To send exactly the
 tail -n 100 error.log | ai explain these errors
 ```
 
-`-c` fails outside tmux and takes precedence over piped input, so omit it when using a pipe. Captured or piped text is sent to the selected provider. Without either, AI Shell sends only the question; delegated CLIs may also use their own workspace context.
+`-c` and `-n` require tmux and take precedence over piped input, so omit them when using a pipe. Captured or piped text is sent to the selected provider. Without either, AI Shell sends only the question; delegated CLIs may also use their own workspace context.
 
 | Option | Purpose |
 | --- | --- |
 | `-m`, `--module NAME` | Select a configured module |
-| `-c`, `--context` | Attach tmux pane output |
-| `-n`, `--lines N` | With `-c`, include up to N earlier lines above the visible terminal text (default: 30) |
+| `-c`, `--context` | Attach the visible tmux pane; `-c 3` includes three screenfuls |
+| `-n`, `--lines N` | Attach up to the last N tmux pane lines; `-c` is optional |
 | `--config PATH` | Use a different config file |
 | `--init-config` | Create an example config and exit |
 | `--force` | Overwrite the config with `--init-config` |

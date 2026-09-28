@@ -13,6 +13,8 @@ ai --init-config
 ai why did my build fail
 ai -m claude summarize this error
 ai -c "what failed above"
+ai -c 3 "what failed in the last three screens"
+ai -n 3 "explain the last three lines"
 dmesg | ai explain this
 ai --list-modules
 ```
