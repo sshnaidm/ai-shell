@@ -22,14 +22,37 @@ from ai_shell.output import ColorMode, OutputFormat, TerminalRenderer
 console = Console(stderr=True)
 
 
-def get_tmux_context(lines: int) -> str:
+def get_tmux_context(lines: int | None = None, *, screens: int = 1) -> str:
     if not os.environ.get("TMUX"):
         raise RuntimeError(
             "Not inside tmux. Run inside a tmux session, or pipe input instead."
         )
-    cmd = ["tmux", "capture-pane", "-p", "-S", f"-{lines}"]
+    cmd = ["tmux", "capture-pane", "-p"]
+    if lines is not None:
+        cmd.extend(["-S", f"-{lines}"])
+        limit = lines
+    elif screens > 1:
+        height_result = subprocess.run(
+            ["tmux", "display-message", "-p", "#{pane_height}"],
+            capture_output=True, text=True, check=True,
+        )
+        try:
+            height = int(height_result.stdout.strip())
+        except ValueError as exc:
+            raise RuntimeError("Could not determine the tmux pane height.") from exc
+        if height < 1:
+            raise RuntimeError("Could not determine the tmux pane height.")
+        cmd.extend(["-S", f"-{(screens - 1) * height}"])
+        limit = screens * height
+    else:
+        limit = None
     res = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    return res.stdout
+    captured = res.stdout.splitlines()
+    # tmux pads the pane below the cursor with empty rows. Discard that
+    # padding before choosing the requested number of recent lines.
+    while captured and not captured[-1].strip():
+        captured.pop()
+    return "\n".join(captured[-limit:] if limit is not None else captured)
 
 
 def main(
@@ -40,10 +63,11 @@ def main(
         None, "-m", "--module", help="Module name from ~/.ai-shell.toml"
     ),
     context: bool = typer.Option(
-        False, "-c", "--context", help="Attach recent tmux pane output"
+        False, "-c", "--context", help="Attach the visible tmux pane; -c 3 attaches 3 screens"
     ),
-    lines: int = typer.Option(
-        30, "-n", "--lines", help="Number of tmux lines to capture"
+    lines: int | None = typer.Option(
+        None, "-n", "--lines", min=1,
+        help="Attach the last N tmux pane lines (implies -c)",
     ),
     debug: bool = typer.Option(
         False, "--debug", help="Print module and prompt preview; show Codex diagnostics live"
@@ -89,7 +113,17 @@ def main(
             console.print(f"{name}: type={item.type}{mark}")
         raise typer.Exit(0)
 
-    question = " ".join(prompt or []).strip()
+    question_parts = list(prompt or [])
+    screens = 1
+    # Typer parses -c as a flag; an optional screen count arrives as the
+    # first positional argument, before the question.
+    if context and question_parts and question_parts[0].isdecimal():
+        screens = int(question_parts.pop(0))
+        if screens < 1:
+            raise typer.BadParameter("The number of screens must be at least 1.")
+        if lines is not None:
+            raise typer.BadParameter("Use either -c SCREENS or -n LINES, not both.")
+    question = " ".join(question_parts).strip()
     if not question:
         raise typer.BadParameter("Question cannot be empty")
 
@@ -109,9 +143,9 @@ def main(
     resolved_format = output.resolve_format(sys.stdout)
 
     context_text: str | None = None
-    if context:
+    if context or lines is not None:
         try:
-            context_text = get_tmux_context(lines)
+            context_text = get_tmux_context(lines, screens=screens)
         except FileNotFoundError:
             console.print(
                 "[bold red]Error:[/bold red] tmux is not installed or not on PATH."
