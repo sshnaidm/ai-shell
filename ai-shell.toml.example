@@ -1,0 +1,62 @@
+# Copy to ~/.ai-shell.toml and edit.
+# This file is not read from the repo; `ai` always uses ~/.ai-shell.toml
+# (or --config PATH) because the command is meant to run from any directory.
+
+default = "openai"
+
+[output]
+format = "auto"  # Styled terminal output; raw Markdown when piped or redirected.
+color = "auto"   # auto, always, or never (for terminal format).
+prompt_instructions = true
+
+[modules.openai]
+type = "openai"
+model = "gpt-6-luna"
+api_key_env = "OPENAI_API_KEY"
+# api_key = "sk-..."
+# base_url = "https://api.openai.com/v1"
+
+[modules.anthropic]
+type = "anthropic"
+model = "claude-sonnet-5"
+api_key_env = "ANTHROPIC_API_KEY"
+
+[modules.gemini_api]
+type = "gemini_api"
+model = "gemini-3.8-flash"
+api_key_env = "GEMINI_API_KEY"
+
+[modules.vertex]
+type = "vertex"
+project = "my-gcp-project"
+location = "us-central1"
+model = "gemini-3.8-flash"
+
+[modules.vertex_anthropic]
+type = "vertex"
+publisher = "anthropic"
+project = "my-gcp-project"
+location = "global"
+model = "claude-sonnet-5"
+max_tokens = 4096
+
+[modules.gemini]
+type = "gemini"
+
+[modules.claude]
+type = "claude"
+
+[modules.opencode]
+type = "opencode"
+# model = "anthropic/claude-sonnet-5"
+
+[modules.codex]
+type = "codex"
+
+[modules.cursor]
+type = "cursor"
+# command = "/path/to/cursor/agent"  # Use if another `agent` is first on PATH.
+
+[modules.grok]
+type = "grok"
+# model = "your-grok-model-id"
