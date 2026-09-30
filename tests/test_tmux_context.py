@@ -37,15 +37,12 @@ class TmuxContextCliTests(unittest.TestCase):
         tmux.chmod(0o755)
 
         provider = self.root / "provider"
-        provider.write_text(
-            f"#!{sys.executable}\nimport json, sys\nprint(json.dumps(sys.argv[-1]))\n"
-        )
+        provider.write_text(f"#!{sys.executable}\nimport json, sys\nprint(json.dumps(sys.argv[-1]))\n")
         provider.chmod(0o755)
 
         self.config = self.root / "config.toml"
         self.config.write_text(
-            'default = "mock"\n[modules.mock]\ntype = "cli"\n'
-            f"command = {json.dumps(str(provider))}\n"
+            f'default = "mock"\n[modules.mock]\ntype = "cli"\ncommand = {json.dumps(str(provider))}\n'
         )
 
     def run_ai(self, *args):
@@ -53,9 +50,7 @@ class TmuxContextCliTests(unittest.TestCase):
         env["TMUX"] = "fake"
         env["PATH"] = os.pathsep.join((str(self.root), env.get("PATH", "")))
         source = str(Path(__file__).resolve().parents[1])
-        env["PYTHONPATH"] = os.pathsep.join(
-            filter(None, (source, env.get("PYTHONPATH")))
-        )
+        env["PYTHONPATH"] = os.pathsep.join(filter(None, (source, env.get("PYTHONPATH"))))
         return subprocess.run(
             [sys.executable, "-m", "ai_shell.cli", "--config", str(self.config), *args],
             env=env,

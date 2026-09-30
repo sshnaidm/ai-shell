@@ -11,9 +11,7 @@ from tempfile import TemporaryDirectory
 
 
 class CodexDirectoryTests(unittest.TestCase):
-    def run_from_non_git_directory(
-        self, extra_args, *, debug=False, expected_exit=0, module_type="codex"
-    ):
+    def run_from_non_git_directory(self, extra_args, *, debug=False, expected_exit=0, module_type="codex"):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             codex = root / "codex"
@@ -43,9 +41,7 @@ class CodexDirectoryTests(unittest.TestCase):
             )
             environment = os.environ.copy()
             source_root = str(Path(__file__).resolve().parents[1])
-            environment["PYTHONPATH"] = os.pathsep.join(
-                filter(None, (source_root, environment.get("PYTHONPATH")))
-            )
+            environment["PYTHONPATH"] = os.pathsep.join(filter(None, (source_root, environment.get("PYTHONPATH"))))
             result = subprocess.run(
                 [
                     sys.executable,
@@ -78,9 +74,7 @@ class CodexDirectoryTests(unittest.TestCase):
         self.assertEqual(args[-3:], ["-m", "test-model", "how to find large files?"])
 
     def test_existing_workaround_does_not_duplicate_flag(self):
-        args = json.loads(
-            self.run_from_non_git_directory(["--skip-git-repo-check"]).stdout
-        )
+        args = json.loads(self.run_from_non_git_directory(["--skip-git-repo-check"]).stdout)
         self.assertEqual(args.count("--skip-git-repo-check"), 1)
 
     def test_success_hides_codex_diagnostics_but_keeps_answer(self):
@@ -125,8 +119,7 @@ class CodexDirectoryTests(unittest.TestCase):
             codex.chmod(0o755)
             config = root / "config.toml"
             config.write_text(
-                'default = "codex"\n[modules.codex]\ntype = "codex"\n'
-                f"command = {json.dumps(str(codex))}\n"
+                f'default = "codex"\n[modules.codex]\ntype = "codex"\ncommand = {json.dumps(str(codex))}\n'
             )
             with subprocess.Popen(
                 [
@@ -144,9 +137,7 @@ class CodexDirectoryTests(unittest.TestCase):
             ) as process:
                 try:
                     readable, _, _ = select.select([process.stdout], [], [], 5)
-                    self.assertTrue(
-                        readable, "Answer was buffered or stderr blocked the child"
-                    )
+                    self.assertTrue(readable, "Answer was buffered or stderr blocked the child")
                     self.assertEqual(process.stdout.readline(), "First part\n")
                     self.assertIsNone(process.poll(), "Codex should still be running")
                     release.touch()

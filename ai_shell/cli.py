@@ -24,9 +24,7 @@ console = Console(stderr=True)
 
 def get_tmux_context(lines: int | None = None, *, screens: int = 1) -> str:
     if not os.environ.get("TMUX"):
-        raise RuntimeError(
-            "Not inside tmux. Run inside a tmux session, or pipe input instead."
-        )
+        raise RuntimeError("Not inside tmux. Run inside a tmux session, or pipe input instead.")
     cmd = ["tmux", "capture-pane", "-p"]
     if lines is not None:
         cmd.extend(["-S", f"-{lines}"])
@@ -59,9 +57,7 @@ def get_tmux_context(lines: int | None = None, *, screens: int = 1) -> str:
 
 def main(
     prompt: list[str] | None = typer.Argument(None, help="Question for the AI"),
-    module: str | None = typer.Option(
-        None, "-m", "--module", help="Module name from ~/.ai-shell.toml"
-    ),
+    module: str | None = typer.Option(None, "-m", "--module", help="Module name from ~/.ai-shell.toml"),
     context: bool = typer.Option(
         False,
         "-c",
@@ -83,21 +79,11 @@ def main(
     output_format: OutputFormat | None = typer.Option(
         None, "--format", help="Answer format: auto, terminal, plain, or markdown"
     ),
-    color: ColorMode | None = typer.Option(
-        None, "--color", help="Terminal colors: auto, always, or never"
-    ),
-    list_modules: bool = typer.Option(
-        False, "--list-modules", help="List configured modules and exit"
-    ),
-    init_config: bool = typer.Option(
-        False, "--init-config", help=f"Write example config to {CONFIG_PATH}"
-    ),
-    force: bool = typer.Option(
-        False, "--force", help="Overwrite config when used with --init-config"
-    ),
-    config_path: Path | None = typer.Option(
-        None, "--config", help="Config file (default: ~/.ai-shell.toml)"
-    ),
+    color: ColorMode | None = typer.Option(None, "--color", help="Terminal colors: auto, always, or never"),
+    list_modules: bool = typer.Option(False, "--list-modules", help="List configured modules and exit"),
+    init_config: bool = typer.Option(False, "--init-config", help=f"Write example config to {CONFIG_PATH}"),
+    force: bool = typer.Option(False, "--force", help="Overwrite config when used with --init-config"),
+    config_path: Path | None = typer.Option(None, "--config", help="Config file (default: ~/.ai-shell.toml)"),
 ) -> None:
     """Ask an AI a question from the shell using a configured module."""
     if init_config:
@@ -138,9 +124,7 @@ def main(
     chosen = module or app_config.default
     if chosen not in app_config.modules:
         known = ", ".join(sorted(app_config.modules))
-        console.print(
-            f"[bold red]Error:[/bold red] Unknown module `{chosen}`. Known: {known}."
-        )
+        console.print(f"[bold red]Error:[/bold red] Unknown module `{chosen}`. Known: {known}.")
         raise typer.Exit(1)
     selected = app_config.modules[chosen]
     output = app_config.output
@@ -155,9 +139,7 @@ def main(
         try:
             context_text = get_tmux_context(lines, screens=screens)
         except FileNotFoundError:
-            console.print(
-                "[bold red]Error:[/bold red] tmux is not installed or not on PATH."
-            )
+            console.print("[bold red]Error:[/bold red] tmux is not installed or not on PATH.")
             raise typer.Exit(1)
         except subprocess.CalledProcessError as e:
             console.print(f"[bold red]Error capturing tmux pane:[/bold red] {e}")
@@ -185,11 +167,7 @@ def main(
         console.print(f"[dim]Captured {captured} characters of context...[/dim]")
         console.print(f"[dim]Prompt Preview:\n{full_prompt}[/dim]")
 
-    renderer = (
-        TerminalRenderer(color=output.color)
-        if resolved_format == OutputFormat.terminal
-        else None
-    )
+    renderer = TerminalRenderer(color=output.color) if resolved_format == OutputFormat.terminal else None
     try:
         # Finish pending blocks on failure too, so partial answers remain visible.
         try:
@@ -206,9 +184,7 @@ def main(
         console.print(f"[bold red]Error:[/bold red] {e}")
         raise typer.Exit(1)
     except subprocess.CalledProcessError as e:
-        console.print(
-            f"[bold red]Error running {selected.type}:[/bold red] exit code {e.returncode}"
-        )
+        console.print(f"[bold red]Error running {selected.type}:[/bold red] exit code {e.returncode}")
         raise typer.Exit(e.returncode or 1)
     except (BackendError, ValueError) as e:
         console.print(f"[bold red]Error:[/bold red] {e}")

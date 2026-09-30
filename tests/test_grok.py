@@ -16,11 +16,7 @@ class GrokCliTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             grok = root / "grok"
-            grok.write_text(
-                f"#!{sys.executable}\n"
-                "import json, sys\n"
-                "print(json.dumps(sys.argv[1:]))\n"
-            )
+            grok.write_text(f"#!{sys.executable}\nimport json, sys\nprint(json.dumps(sys.argv[1:]))\n")
             grok.chmod(0o755)
             config = root / "config.toml"
             config.write_text(
@@ -33,9 +29,7 @@ class GrokCliTests(unittest.TestCase):
             environment = os.environ.copy()
             environment["PATH"] = f"{root}{os.pathsep}{environment.get('PATH', '')}"
             source_root = str(Path(__file__).resolve().parents[1])
-            environment["PYTHONPATH"] = os.pathsep.join(
-                filter(None, (source_root, environment.get("PYTHONPATH")))
-            )
+            environment["PYTHONPATH"] = os.pathsep.join(filter(None, (source_root, environment.get("PYTHONPATH"))))
             result = subprocess.run(
                 [
                     sys.executable,

@@ -27,16 +27,11 @@ class CursorCliTests(unittest.TestCase):
             )
             agent.chmod(0o755)
             config = root / "config.toml"
-            config.write_text(
-                'default = "cursor"\n[modules.cursor]\ntype = "cursor"\n'
-                'model = "test-model"\n'
-            )
+            config.write_text('default = "cursor"\n[modules.cursor]\ntype = "cursor"\nmodel = "test-model"\n')
             env = os.environ.copy()
             env["PATH"] = f"{root}{os.pathsep}{env.get('PATH', '')}"
             source_root = str(Path(__file__).resolve().parents[1])
-            env["PYTHONPATH"] = os.pathsep.join(
-                filter(None, (source_root, env.get("PYTHONPATH")))
-            )
+            env["PYTHONPATH"] = os.pathsep.join(filter(None, (source_root, env.get("PYTHONPATH"))))
             return subprocess.run(
                 [
                     sys.executable,
