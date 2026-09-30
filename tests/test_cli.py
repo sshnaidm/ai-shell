@@ -2,12 +2,12 @@
 
 import json
 import os
-from pathlib import Path
 import select
 import subprocess
 import sys
-from tempfile import TemporaryDirectory
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 
 class CodexDirectoryTests(unittest.TestCase):
@@ -34,7 +34,7 @@ class CodexDirectoryTests(unittest.TestCase):
             config = root / "config.toml"
             config.write_text(
                 'default = "codex"\n'
-                '[modules.codex]\n'
+                "[modules.codex]\n"
                 f"type = {json.dumps(module_type)}\n"
                 'args = ["exec", "--skip-git-repo-check"]\n'
                 f"command = {json.dumps(str(codex))}\n"
@@ -48,9 +48,17 @@ class CodexDirectoryTests(unittest.TestCase):
             )
             result = subprocess.run(
                 [
-                    sys.executable, "-m", "ai_shell.cli", "--config", str(config),
+                    sys.executable,
+                    "-m",
+                    "ai_shell.cli",
+                    "--config",
+                    str(config),
                     *(["--debug"] if debug else []),
-                    "how", "to", "find", "large", "files?",
+                    "how",
+                    "to",
+                    "find",
+                    "large",
+                    "files?",
                 ],
                 cwd=root,
                 env=environment,
@@ -70,7 +78,9 @@ class CodexDirectoryTests(unittest.TestCase):
         self.assertEqual(args[-3:], ["-m", "test-model", "how to find large files?"])
 
     def test_existing_workaround_does_not_duplicate_flag(self):
-        args = json.loads(self.run_from_non_git_directory(["--skip-git-repo-check"]).stdout)
+        args = json.loads(
+            self.run_from_non_git_directory(["--skip-git-repo-check"]).stdout
+        )
         self.assertEqual(args.count("--skip-git-repo-check"), 1)
 
     def test_success_hides_codex_diagnostics_but_keeps_answer(self):
@@ -119,7 +129,14 @@ class CodexDirectoryTests(unittest.TestCase):
                 f"command = {json.dumps(str(codex))}\n"
             )
             with subprocess.Popen(
-                [sys.executable, "-m", "ai_shell.cli", "--config", str(config), "Question"],
+                [
+                    sys.executable,
+                    "-m",
+                    "ai_shell.cli",
+                    "--config",
+                    str(config),
+                    "Question",
+                ],
                 stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -127,7 +144,9 @@ class CodexDirectoryTests(unittest.TestCase):
             ) as process:
                 try:
                     readable, _, _ = select.select([process.stdout], [], [], 5)
-                    self.assertTrue(readable, "Answer was buffered or stderr blocked the child")
+                    self.assertTrue(
+                        readable, "Answer was buffered or stderr blocked the child"
+                    )
                     self.assertEqual(process.stdout.readline(), "First part\n")
                     self.assertIsNone(process.poll(), "Codex should still be running")
                     release.touch()

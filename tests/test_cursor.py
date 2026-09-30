@@ -2,11 +2,11 @@
 
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
-from tempfile import TemporaryDirectory
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from ai_shell.backends.cli import build_argv
 from ai_shell.config import ModuleConfig
@@ -38,8 +38,15 @@ class CursorCliTests(unittest.TestCase):
                 filter(None, (source_root, env.get("PYTHONPATH")))
             )
             return subprocess.run(
-                [sys.executable, "-m", "ai_shell.cli", "--config", str(config),
-                 "One", "question"],
+                [
+                    sys.executable,
+                    "-m",
+                    "ai_shell.cli",
+                    "--config",
+                    str(config),
+                    "One",
+                    "question",
+                ],
                 cwd=root,
                 env=env,
                 input="",

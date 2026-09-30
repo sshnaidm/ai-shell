@@ -3,14 +3,14 @@
 import io
 import json
 import os
-from pathlib import Path
 import pty
 import re
 import select
 import subprocess
 import sys
-from tempfile import TemporaryDirectory
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import httpx
@@ -19,7 +19,6 @@ from ai_shell.backends.http import run_http_module
 from ai_shell.config import ConfigError, ModuleConfig, load_config
 from ai_shell.output import ColorMode, OutputConfig, OutputFormat, TerminalRenderer
 from ai_shell.prompt import build_prompt
-
 
 ANSWER = "## Summary\n\n**Use find.**\n\n```bash\nfind . -type f\n```\n"
 ANSI = re.compile(r"\x1b\[[0-9;]*m")
@@ -32,7 +31,9 @@ class OutputTests(unittest.TestCase):
                 return True
 
         self.assertEqual(OutputConfig().resolve_format(Tty()), OutputFormat.terminal)
-        self.assertEqual(OutputConfig().resolve_format(io.StringIO()), OutputFormat.markdown)
+        self.assertEqual(
+            OutputConfig().resolve_format(io.StringIO()), OutputFormat.markdown
+        )
 
     def test_renderer_handles_markers_split_across_chunks_and_code_blank_lines(self):
         stream = io.StringIO()
@@ -63,13 +64,18 @@ class OutputTests(unittest.TestCase):
 
     def test_force_color_overrides_no_color_and_never_disables_styles(self):
         with patch.dict(os.environ, {"NO_COLOR": "1"}):
-            for color, ansi_expected in ((ColorMode.always, True), (ColorMode.never, False)):
+            for color, ansi_expected in (
+                (ColorMode.always, True),
+                (ColorMode.never, False),
+            ):
                 with self.subTest(color=color):
                     stream = io.StringIO()
                     renderer = TerminalRenderer(stream, color=color)
                     renderer.write("**Emphasis**\n\n")
                     renderer.finish()
-                    self.assertEqual(bool(ANSI.search(stream.getvalue())), ansi_expected)
+                    self.assertEqual(
+                        bool(ANSI.search(stream.getvalue())), ansi_expected
+                    )
 
     def test_plain_instructions_preserve_context_and_can_be_disabled(self):
         prompt = build_prompt("My question", "My log", output_format=OutputFormat.plain)
@@ -78,7 +84,12 @@ class OutputTests(unittest.TestCase):
         self.assertIn("My question", prompt)
         for format in (OutputFormat.plain, OutputFormat.terminal):
             self.assertEqual(
-                build_prompt("Exact question", None, output_format=format, prompt_instructions=False),
+                build_prompt(
+                    "Exact question",
+                    None,
+                    output_format=format,
+                    prompt_instructions=False,
+                ),
                 "Exact question",
             )
         self.assertEqual(build_prompt("Exact question", None), "Exact question")
@@ -89,7 +100,10 @@ class OutputTests(unittest.TestCase):
             basic = 'default = "test"\n[modules.test]\ntype = "codex"\n'
             path.write_text(basic)
             self.assertEqual(load_config(path).output.format, OutputFormat.auto)
-            path.write_text(basic + '[output]\nformat = "plain"\ncolor = "never"\nprompt_instructions = false\n')
+            path.write_text(
+                basic
+                + '[output]\nformat = "plain"\ncolor = "never"\nprompt_instructions = false\n'
+            )
             settings = load_config(path).output
             self.assertEqual(settings.format, OutputFormat.plain)
             self.assertEqual(settings.color, ColorMode.never)
@@ -105,16 +119,24 @@ class OutputTests(unittest.TestCase):
             {"choices": [{"delta": {"content": ANSWER[:20]}}]},
             {"choices": [{"delta": {"content": ANSWER[20:]}}]},
         ]
-        data = "".join(f"data: {json.dumps(event)}\n\n" for event in events) + "data: [DONE]\n\n"
-        client = httpx.Client(transport=httpx.MockTransport(
-            lambda request: httpx.Response(200, text=data)
-        ))
+        data = (
+            "".join(f"data: {json.dumps(event)}\n\n" for event in events)
+            + "data: [DONE]\n\n"
+        )
+        client = httpx.Client(
+            transport=httpx.MockTransport(
+                lambda request: httpx.Response(200, text=data)
+            )
+        )
         stream = io.StringIO()
         renderer = TerminalRenderer(stream, color=ColorMode.never)
         with patch("ai_shell.backends.http.httpx.Client", return_value=client):
             run_http_module(
-                ModuleConfig("test", "openai", {"api_key": "test", "model": "gpt-6-luna"}),
-                "Question", write=renderer.write,
+                ModuleConfig(
+                    "test", "openai", {"api_key": "test", "model": "gpt-6-luna"}
+                ),
+                "Question",
+                write=renderer.write,
             )
         renderer.finish()
         self.assertIn("find . -type f", stream.getvalue())
@@ -145,10 +167,20 @@ class OutputCliTests(unittest.TestCase):
         )
 
     def command(self, *options):
-        return [sys.executable, "-m", "ai_shell.cli", "--config", str(self.config), *options, "Question"]
+        return [
+            sys.executable,
+            "-m",
+            "ai_shell.cli",
+            "--config",
+            str(self.config),
+            *options,
+            "Question",
+        ]
 
     def test_redirected_auto_output_stays_raw_and_prompt_unchanged(self):
-        result = subprocess.run(self.command(), input="", capture_output=True, text=True, timeout=10)
+        result = subprocess.run(
+            self.command(), input="", capture_output=True, text=True, timeout=10
+        )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, ANSWER)
         self.assertEqual(result.stderr, "")
@@ -157,7 +189,10 @@ class OutputCliTests(unittest.TestCase):
     def test_terminal_format_override_renders_redirected_answer(self):
         result = subprocess.run(
             self.command("--format", "terminal", "--color", "never"),
-            input="", capture_output=True, text=True, timeout=10,
+            input="",
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("find . -type f", result.stdout)
@@ -170,7 +205,11 @@ class OutputCliTests(unittest.TestCase):
         with self.config.open("a") as file:
             file.write('[output]\nformat = "terminal"\ncolor = "always"\n')
         result = subprocess.run(
-            self.command("--format", "plain"), input="", capture_output=True, text=True, timeout=10,
+            self.command("--format", "plain"),
+            input="",
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         # Plain mode passes through the answer; the model may ignore its instructions.
@@ -182,7 +221,10 @@ class OutputCliTests(unittest.TestCase):
             file.write('extra_args = ["--fail"]\n')
         result = subprocess.run(
             self.command("--format", "terminal", "--color", "never"),
-            input="", capture_output=True, text=True, timeout=10,
+            input="",
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         self.assertEqual(result.returncode, 7)
         self.assertIn("Codex diagnostic", result.stderr)
@@ -194,7 +236,10 @@ class OutputCliTests(unittest.TestCase):
         master, slave = pty.openpty()
         try:
             with subprocess.Popen(
-                self.command(), stdin=subprocess.DEVNULL, stdout=slave, stderr=subprocess.PIPE,
+                self.command(),
+                stdin=subprocess.DEVNULL,
+                stdout=slave,
+                stderr=subprocess.PIPE,
                 env={**os.environ, "TERM": "xterm-256color"},
             ) as process:
                 os.close(slave)

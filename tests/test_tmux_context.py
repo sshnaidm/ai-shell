@@ -2,11 +2,11 @@
 
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
-from tempfile import TemporaryDirectory
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 
 class TmuxContextCliTests(unittest.TestCase):
@@ -38,9 +38,7 @@ class TmuxContextCliTests(unittest.TestCase):
 
         provider = self.root / "provider"
         provider.write_text(
-            f"#!{sys.executable}\n"
-            "import json, sys\n"
-            "print(json.dumps(sys.argv[-1]))\n"
+            f"#!{sys.executable}\nimport json, sys\nprint(json.dumps(sys.argv[-1]))\n"
         )
         provider.chmod(0o755)
 
@@ -55,10 +53,16 @@ class TmuxContextCliTests(unittest.TestCase):
         env["TMUX"] = "fake"
         env["PATH"] = os.pathsep.join((str(self.root), env.get("PATH", "")))
         source = str(Path(__file__).resolve().parents[1])
-        env["PYTHONPATH"] = os.pathsep.join(filter(None, (source, env.get("PYTHONPATH"))))
+        env["PYTHONPATH"] = os.pathsep.join(
+            filter(None, (source, env.get("PYTHONPATH")))
+        )
         return subprocess.run(
             [sys.executable, "-m", "ai_shell.cli", "--config", str(self.config), *args],
-            env=env, input="", capture_output=True, text=True, timeout=10,
+            env=env,
+            input="",
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
 
     def test_context_without_count_uses_visible_pane(self):

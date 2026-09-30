@@ -392,3 +392,13 @@ tail -n 100 error.log | ai explain these errors
 | `--help` | Show command help |
 
 Answers go to stdout; AI Shell errors and debug output go to stderr. `--debug` still calls the provider and prints any attached context and formatting instructions in its prompt preview.
+
+## Development checks
+
+Run the same Ruff lint and format checks used by GitHub Actions:
+
+```bash
+./scripts/lint.sh
+```
+
+The script uses uv to install the locked development dependencies from `uv.lock`.
