@@ -6,9 +6,7 @@ from ai_shell.backends.cli import run_cli_module
 from ai_shell.backends.http import run_http_module
 from ai_shell.config import ModuleConfig
 
-CLI_TYPES = frozenset(
-    {"gemini", "claude", "opencode", "codex", "cursor", "grok", "cli"}
-)
+CLI_TYPES = frozenset({"gemini", "claude", "opencode", "codex", "cursor", "grok", "cli"})
 HTTP_TYPES = frozenset({"openai", "gemini_api", "anthropic", "vertex"})
 
 

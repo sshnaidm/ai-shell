@@ -64,14 +64,10 @@ class HttpModuleTests(unittest.TestCase):
         return requests[0], output.getvalue()
 
     def vertex(self, **settings):
-        return ModuleConfig(
-            "vertex_test", "vertex", {"project": "test-project", **settings}
-        )
+        return ModuleConfig("vertex_test", "vertex", {"project": "test-project", **settings})
 
     def test_claude_model_infers_anthropic_and_global(self):
-        request, output = self.run_mocked(
-            self.vertex(model="claude-sonnet-5", max_tokens=8192), CLAUDE_EVENTS
-        )
+        request, output = self.run_mocked(self.vertex(model="claude-sonnet-5", max_tokens=8192), CLAUDE_EVENTS)
         self.assertEqual(request.method, "POST")
         self.assertEqual(
             str(request.url),
@@ -93,9 +89,7 @@ class HttpModuleTests(unittest.TestCase):
         self.assertEqual(output, "Hello world\n")
 
     def test_explicit_anthropic_publisher_uses_claude_defaults(self):
-        request, output = self.run_mocked(
-            self.vertex(publisher="anthropic"), CLAUDE_EVENTS
-        )
+        request, output = self.run_mocked(self.vertex(publisher="anthropic"), CLAUDE_EVENTS)
         self.assertIn("/publishers/anthropic/models/claude-sonnet-5:", str(request.url))
         self.assertEqual(json.loads(request.content)["max_tokens"], 4096)
         self.assertEqual(output, "Hello world\n")
@@ -103,12 +97,8 @@ class HttpModuleTests(unittest.TestCase):
     def test_claude_multi_region_hosts(self):
         for location in ("us", "eu"):
             with self.subTest(location=location):
-                request, output = self.run_mocked(
-                    self.vertex(publisher="anthropic", location=location), CLAUDE_EVENTS
-                )
-                self.assertEqual(
-                    request.url.host, f"aiplatform.{location}.rep.googleapis.com"
-                )
+                request, output = self.run_mocked(self.vertex(publisher="anthropic", location=location), CLAUDE_EVENTS)
+                self.assertEqual(request.url.host, f"aiplatform.{location}.rep.googleapis.com")
                 self.assertIn(f"/locations/{location}/", request.url.path)
                 self.assertEqual(output, "Hello world\n")
 
@@ -118,9 +108,7 @@ class HttpModuleTests(unittest.TestCase):
             CLAUDE_EVENTS,
         )
         self.assertEqual(request.url.host, "us-east5-aiplatform.googleapis.com")
-        self.assertIn(
-            "/publishers/anthropic/models/claude-sonnet-4-5@20250929:", request.url.path
-        )
+        self.assertIn("/publishers/anthropic/models/claude-sonnet-4-5@20250929:", request.url.path)
 
     def test_gemini_vertex_keeps_its_format_and_uses_updated_default(self):
         events = [{"candidates": [{"content": {"parts": [{"text": "Gemini answer"}]}}]}]
@@ -132,18 +120,12 @@ class HttpModuleTests(unittest.TestCase):
                 settings = {"location": location} if location else {}
                 request, output = self.run_mocked(self.vertex(**settings), events)
                 self.assertEqual(request.url.host, host)
-                self.assertIn(
-                    "/publishers/google/models/gemini-3.8-flash:", request.url.path
-                )
+                self.assertIn("/publishers/google/models/gemini-3.8-flash:", request.url.path)
                 self.assertTrue(request.url.path.endswith(":streamGenerateContent"))
                 self.assertEqual(request.url.params["alt"], "sse")
                 self.assertEqual(
                     json.loads(request.content),
-                    {
-                        "contents": [
-                            {"role": "user", "parts": [{"text": "My question"}]}
-                        ]
-                    },
+                    {"contents": [{"role": "user", "parts": [{"text": "My question"}]}]},
                 )
                 self.assertEqual(output, "Gemini answer\n")
 
@@ -185,9 +167,7 @@ class HttpModuleTests(unittest.TestCase):
             with self.subTest(data=data):
                 with patch("ai_shell.backends.http._vertex_token") as token:
                     with self.assertRaisesRegex(BackendError, message):
-                        run_http_module(
-                            ModuleConfig("invalid", "vertex", data), "Question"
-                        )
+                        run_http_module(ModuleConfig("invalid", "vertex", data), "Question")
                     token.assert_not_called()
 
 

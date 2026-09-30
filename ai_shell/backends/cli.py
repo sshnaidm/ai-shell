@@ -136,10 +136,7 @@ def run_cli_module(
                 timeout=5,
                 check=False,
             )
-            if (
-                detected.returncode
-                or "cursor agent" not in (detected.stdout + detected.stderr).lower()
-            ):
+            if detected.returncode or "cursor agent" not in (detected.stdout + detected.stderr).lower():
                 found = shutil.which(argv[0]) or argv[0]
                 raise ValueError(
                     f"`{argv[0]}` resolves to {found}, which does not appear to be "
@@ -149,9 +146,7 @@ def run_cli_module(
         if module.type == "codex" and not debug:
             # Keep stdout live. A file avoids pipe deadlocks and unbounded RAM
             # use when Codex emits a long progress log on stderr.
-            with tempfile.TemporaryFile(
-                mode="w+", encoding="utf-8", errors="replace"
-            ) as diagnostics:
+            with tempfile.TemporaryFile(mode="w+", encoding="utf-8", errors="replace") as diagnostics:
                 try:
                     _run_command(argv, stderr=diagnostics, write=write)
                 except (subprocess.CalledProcessError, KeyboardInterrupt):
@@ -164,6 +159,5 @@ def run_cli_module(
     except FileNotFoundError as exc:
         binary = argv[0]
         raise FileNotFoundError(
-            f"Command `{binary}` not found. Install it or set `command` in "
-            f"[{module.name}] in ~/.ai-shell.toml."
+            f"Command `{binary}` not found. Install it or set `command` in [{module.name}] in ~/.ai-shell.toml."
         ) from exc

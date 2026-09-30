@@ -40,8 +40,7 @@ class OutputConfig:
             color = ColorMode(data.get("color", "auto"))
         except ValueError as exc:
             raise ValueError(
-                "[output] format must be auto, terminal, plain, or markdown; "
-                "color must be auto, always, or never."
+                "[output] format must be auto, terminal, plain, or markdown; color must be auto, always, or never."
             ) from exc
         instructions = data.get("prompt_instructions", True)
         if not isinstance(instructions, bool):
@@ -61,9 +60,7 @@ _HEADING = re.compile(r"^ {0,3}#{1,6}\s+")
 class TerminalRenderer:
     """Render complete Markdown blocks without clearing or redrawing the screen."""
 
-    def __init__(
-        self, stream: TextIO | None = None, *, color: ColorMode = ColorMode.auto
-    ):
+    def __init__(self, stream: TextIO | None = None, *, color: ColorMode = ColorMode.auto):
         stream = stream if stream is not None else sys.stdout
         self.console = Console(
             file=stream,

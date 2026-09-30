@@ -107,9 +107,7 @@ class ConfigError(Exception):
 def load_config(path: Path | None = None) -> AppConfig:
     config_path = path or CONFIG_PATH
     if not config_path.is_file():
-        raise ConfigError(
-            f"No config at {config_path}. Run `ai --init-config` to create one."
-        )
+        raise ConfigError(f"No config at {config_path}. Run `ai --init-config` to create one.")
     with config_path.open("rb") as fh:
         raw = tomllib.load(fh)
 

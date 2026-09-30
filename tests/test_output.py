@@ -31,9 +31,7 @@ class OutputTests(unittest.TestCase):
                 return True
 
         self.assertEqual(OutputConfig().resolve_format(Tty()), OutputFormat.terminal)
-        self.assertEqual(
-            OutputConfig().resolve_format(io.StringIO()), OutputFormat.markdown
-        )
+        self.assertEqual(OutputConfig().resolve_format(io.StringIO()), OutputFormat.markdown)
 
     def test_renderer_handles_markers_split_across_chunks_and_code_blank_lines(self):
         stream = io.StringIO()
@@ -73,9 +71,7 @@ class OutputTests(unittest.TestCase):
                     renderer = TerminalRenderer(stream, color=color)
                     renderer.write("**Emphasis**\n\n")
                     renderer.finish()
-                    self.assertEqual(
-                        bool(ANSI.search(stream.getvalue())), ansi_expected
-                    )
+                    self.assertEqual(bool(ANSI.search(stream.getvalue())), ansi_expected)
 
     def test_plain_instructions_preserve_context_and_can_be_disabled(self):
         prompt = build_prompt("My question", "My log", output_format=OutputFormat.plain)
@@ -100,10 +96,7 @@ class OutputTests(unittest.TestCase):
             basic = 'default = "test"\n[modules.test]\ntype = "codex"\n'
             path.write_text(basic)
             self.assertEqual(load_config(path).output.format, OutputFormat.auto)
-            path.write_text(
-                basic
-                + '[output]\nformat = "plain"\ncolor = "never"\nprompt_instructions = false\n'
-            )
+            path.write_text(basic + '[output]\nformat = "plain"\ncolor = "never"\nprompt_instructions = false\n')
             settings = load_config(path).output
             self.assertEqual(settings.format, OutputFormat.plain)
             self.assertEqual(settings.color, ColorMode.never)
@@ -119,22 +112,13 @@ class OutputTests(unittest.TestCase):
             {"choices": [{"delta": {"content": ANSWER[:20]}}]},
             {"choices": [{"delta": {"content": ANSWER[20:]}}]},
         ]
-        data = (
-            "".join(f"data: {json.dumps(event)}\n\n" for event in events)
-            + "data: [DONE]\n\n"
-        )
-        client = httpx.Client(
-            transport=httpx.MockTransport(
-                lambda request: httpx.Response(200, text=data)
-            )
-        )
+        data = "".join(f"data: {json.dumps(event)}\n\n" for event in events) + "data: [DONE]\n\n"
+        client = httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200, text=data)))
         stream = io.StringIO()
         renderer = TerminalRenderer(stream, color=ColorMode.never)
         with patch("ai_shell.backends.http.httpx.Client", return_value=client):
             run_http_module(
-                ModuleConfig(
-                    "test", "openai", {"api_key": "test", "model": "gpt-6-luna"}
-                ),
+                ModuleConfig("test", "openai", {"api_key": "test", "model": "gpt-6-luna"}),
                 "Question",
                 write=renderer.write,
             )
@@ -162,8 +146,7 @@ class OutputCliTests(unittest.TestCase):
         stub.chmod(0o755)
         self.config = self.root / "config.toml"
         self.config.write_text(
-            'default = "codex"\n[modules.codex]\ntype = "codex"\n'
-            f"command = {json.dumps(str(stub))}\n"
+            f'default = "codex"\n[modules.codex]\ntype = "codex"\ncommand = {json.dumps(str(stub))}\n'
         )
 
     def command(self, *options):
@@ -178,9 +161,7 @@ class OutputCliTests(unittest.TestCase):
         ]
 
     def test_redirected_auto_output_stays_raw_and_prompt_unchanged(self):
-        result = subprocess.run(
-            self.command(), input="", capture_output=True, text=True, timeout=10
-        )
+        result = subprocess.run(self.command(), input="", capture_output=True, text=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, ANSWER)
         self.assertEqual(result.stderr, "")
