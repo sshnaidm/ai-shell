@@ -16,8 +16,8 @@ from ai_shell.config import (
     load_config,
     write_example_config,
 )
-from ai_shell.prompt import build_prompt
 from ai_shell.output import ColorMode, OutputFormat, TerminalRenderer
+from ai_shell.prompt import build_prompt
 
 console = Console(stderr=True)
 
@@ -34,7 +34,9 @@ def get_tmux_context(lines: int | None = None, *, screens: int = 1) -> str:
     elif screens > 1:
         height_result = subprocess.run(
             ["tmux", "display-message", "-p", "#{pane_height}"],
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         )
         try:
             height = int(height_result.stdout.strip())
@@ -56,21 +58,27 @@ def get_tmux_context(lines: int | None = None, *, screens: int = 1) -> str:
 
 
 def main(
-    prompt: list[str] | None = typer.Argument(
-        None, help="Question for the AI"
-    ),
+    prompt: list[str] | None = typer.Argument(None, help="Question for the AI"),
     module: str | None = typer.Option(
         None, "-m", "--module", help="Module name from ~/.ai-shell.toml"
     ),
     context: bool = typer.Option(
-        False, "-c", "--context", help="Attach the visible tmux pane; -c 3 attaches 3 screens"
+        False,
+        "-c",
+        "--context",
+        help="Attach the visible tmux pane; -c 3 attaches 3 screens",
     ),
     lines: int | None = typer.Option(
-        None, "-n", "--lines", min=1,
+        None,
+        "-n",
+        "--lines",
+        min=1,
         help="Attach the last N tmux pane lines (implies -c)",
     ),
     debug: bool = typer.Option(
-        False, "--debug", help="Print module and prompt preview; show Codex diagnostics live"
+        False,
+        "--debug",
+        help="Print module and prompt preview; show Codex diagnostics live",
     ),
     output_format: OutputFormat | None = typer.Option(
         None, "--format", help="Answer format: auto, terminal, plain, or markdown"

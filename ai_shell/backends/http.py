@@ -85,11 +85,7 @@ def _run_openai(
                 if data == "[DONE]":
                     break
                 chunk = json.loads(data)
-                delta = (
-                    chunk.get("choices", [{}])[0]
-                    .get("delta", {})
-                    .get("content")
-                )
+                delta = chunk.get("choices", [{}])[0].get("delta", {}).get("content")
                 if delta:
                     write(delta)
     write("\n")
@@ -110,9 +106,7 @@ def _run_anthropic(
     }
     headers = {
         "x-api-key": _require_key(module),
-        "anthropic-version": str(
-            module.data.get("anthropic_version") or "2023-06-01"
-        ),
+        "anthropic-version": str(module.data.get("anthropic_version") or "2023-06-01"),
         "Content-Type": "application/json",
     }
     _stream_anthropic(url, payload, headers=headers, write=write)
@@ -160,8 +154,8 @@ def _run_gemini_api(
 
 def _vertex_token() -> str:
     try:
-        import urllib3
         import google.auth
+        import urllib3
         from google.auth.transport.urllib3 import Request as Urllib3Request
     except ImportError as exc:
         raise BackendError(

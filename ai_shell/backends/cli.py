@@ -130,12 +130,16 @@ def run_cli_module(
             # Other tools also install an `agent` executable. Do not send a
             # Cursor prompt to whichever unrelated tool appears first on PATH.
             detected = subprocess.run(
-                [argv[0], "--help"], capture_output=True, text=True,
-                timeout=5, check=False,
+                [argv[0], "--help"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                check=False,
             )
-            if detected.returncode or "cursor agent" not in (
-                detected.stdout + detected.stderr
-            ).lower():
+            if (
+                detected.returncode
+                or "cursor agent" not in (detected.stdout + detected.stderr).lower()
+            ):
                 found = shutil.which(argv[0]) or argv[0]
                 raise ValueError(
                     f"`{argv[0]}` resolves to {found}, which does not appear to be "

@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from enum import Enum
 import re
 import sys
+from dataclasses import dataclass
+from enum import Enum
 from typing import Any, TextIO
 
 from rich.console import Console
@@ -61,7 +61,9 @@ _HEADING = re.compile(r"^ {0,3}#{1,6}\s+")
 class TerminalRenderer:
     """Render complete Markdown blocks without clearing or redrawing the screen."""
 
-    def __init__(self, stream: TextIO | None = None, *, color: ColorMode = ColorMode.auto):
+    def __init__(
+        self, stream: TextIO | None = None, *, color: ColorMode = ColorMode.auto
+    ):
         stream = stream if stream is not None else sys.stdout
         self.console = Console(
             file=stream,

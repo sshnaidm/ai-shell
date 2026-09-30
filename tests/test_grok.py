@@ -2,11 +2,11 @@
 
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
-from tempfile import TemporaryDirectory
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from ai_shell.config import EXAMPLE_CONFIG
 
@@ -25,7 +25,7 @@ class GrokCliTests(unittest.TestCase):
             config = root / "config.toml"
             config.write_text(
                 'default = "grok"\n'
-                '[modules.grok]\n'
+                "[modules.grok]\n"
                 'type = "grok"\n'
                 'model = "test-model"\n'
                 'extra_args = ["--max-turns", "1"]\n'
@@ -37,8 +37,16 @@ class GrokCliTests(unittest.TestCase):
                 filter(None, (source_root, environment.get("PYTHONPATH")))
             )
             result = subprocess.run(
-                [sys.executable, "-m", "ai_shell.cli", "--config", str(config),
-                 "What", "is", "this?"],
+                [
+                    sys.executable,
+                    "-m",
+                    "ai_shell.cli",
+                    "--config",
+                    str(config),
+                    "What",
+                    "is",
+                    "this?",
+                ],
                 cwd=root,
                 env=environment,
                 input="",
@@ -49,8 +57,16 @@ class GrokCliTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(
                 json.loads(result.stdout),
-                ["--max-turns", "1", "--output-format", "plain", "-m", "test-model",
-                 "-p", "What is this?"],
+                [
+                    "--max-turns",
+                    "1",
+                    "--output-format",
+                    "plain",
+                    "-m",
+                    "test-model",
+                    "-p",
+                    "What is this?",
+                ],
             )
 
     def test_generated_config_offers_grok_module(self):
@@ -58,8 +74,14 @@ class GrokCliTests(unittest.TestCase):
             config = Path(directory) / "config.toml"
             config.write_text(EXAMPLE_CONFIG)
             result = subprocess.run(
-                [sys.executable, "-m", "ai_shell.cli", "--config", str(config),
-                 "--list-modules"],
+                [
+                    sys.executable,
+                    "-m",
+                    "ai_shell.cli",
+                    "--config",
+                    str(config),
+                    "--list-modules",
+                ],
                 input="",
                 capture_output=True,
                 text=True,

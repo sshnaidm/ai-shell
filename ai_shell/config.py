@@ -131,9 +131,7 @@ def load_config(path: Path | None = None) -> AppConfig:
         raise ConfigError(f"{config_path} needs a `default` module name.")
     if default not in modules:
         known = ", ".join(sorted(modules))
-        raise ConfigError(
-            f"Default module `{default}` is not defined. Known: {known}."
-        )
+        raise ConfigError(f"Default module `{default}` is not defined. Known: {known}.")
     try:
         output = OutputConfig.from_dict(raw.get("output", {}))
     except ValueError as exc:
@@ -144,9 +142,7 @@ def load_config(path: Path | None = None) -> AppConfig:
 def write_example_config(path: Path | None = None, *, force: bool = False) -> Path:
     config_path = path or CONFIG_PATH
     if config_path.exists() and not force:
-        raise ConfigError(
-            f"{config_path} already exists. Pass --force to overwrite."
-        )
+        raise ConfigError(f"{config_path} already exists. Pass --force to overwrite.")
     config_path.write_text(EXAMPLE_CONFIG, encoding="utf-8")
     return config_path
 
