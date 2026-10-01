@@ -269,12 +269,34 @@ CLI modules use the selected tool's own authentication and settings. Install and
 Built-in CLI modules accept `command` to override the executable, `model` to select a model, and `extra_args` to pass additional arguments:
 
 ```toml
+[modules.codex]
+type = "codex"
+model = "your-codex-model-id"
+
+[modules.claude]
+type = "claude"
+model = "your-claude-model-id"
+
+[modules.opencode]
+type = "opencode"
+model = "anthropic/your-model-id"
+
 [modules.cursor]
 type = "cursor"
 # command = "/path/to/cursor/agent"  # Use if another `agent` is first on PATH.
-# model = "your-model-id"
+# model = "your-cursor-model-id"
 # extra_args = ["--flag", "value"]
 ```
+
+The same `model` setting works for Gemini, Cursor, and Grok CLI modules. Omit it to use the agent's own default. To choose a different model for one question, pass `--model`:
+
+```bash
+ai -m codex --model your-other-model-id explain this error
+```
+
+`--model` also works with API modules. It overrides the selected module's configured model for that call without changing `~/.ai-shell.toml`. Generic `cli` modules use their tool-specific `args` and `extra_args` instead.
+
+Keep model selection out of `extra_args` when using `model` or `--model`; otherwise the underlying agent receives duplicate model flags.
 
 To use the Grok CLI after signing in with `grok login`, add a module and select it with `-m`:
 
@@ -380,6 +402,7 @@ tail -n 100 error.log | ai explain these errors
 | Option | Purpose |
 | --- | --- |
 | `-m`, `--module NAME` | Select a configured module |
+| `--model MODEL` | Override the selected module's model for this call |
 | `-c`, `--context` | Attach the visible tmux pane; `-c 3` includes three screenfuls |
 | `-n`, `--lines N` | Attach up to the last N tmux pane lines; `-c` is optional |
 | `--config PATH` | Use a different config file |

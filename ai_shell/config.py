@@ -58,9 +58,11 @@ max_tokens = 4096
 
 [modules.gemini]
 type = "gemini"
+# model = "your-gemini-model-id"
 
 [modules.claude]
 type = "claude"
+# model = "your-claude-model-id"
 
 [modules.opencode]
 type = "opencode"
@@ -68,10 +70,12 @@ type = "opencode"
 
 [modules.codex]
 type = "codex"
+# model = "your-codex-model-id"
 
 [modules.cursor]
 type = "cursor"
 # command = "/path/to/cursor/agent"  # Use if another `agent` is first on PATH.
+# model = "your-cursor-model-id"
 
 [modules.grok]
 type = "grok"

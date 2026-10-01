@@ -9,9 +9,14 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from ai_shell.backends.cli import build_argv
+from ai_shell.config import ModuleConfig
+
 
 class CodexDirectoryTests(unittest.TestCase):
-    def run_from_non_git_directory(self, extra_args, *, debug=False, expected_exit=0, module_type="codex"):
+    def run_from_non_git_directory(
+        self, extra_args, *, debug=False, expected_exit=0, module_type="codex", cli_options=()
+    ):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             codex = root / "codex"
@@ -50,6 +55,7 @@ class CodexDirectoryTests(unittest.TestCase):
                     "--config",
                     str(config),
                     *(["--debug"] if debug else []),
+                    *cli_options,
                     "how",
                     "to",
                     "find",
@@ -76,6 +82,23 @@ class CodexDirectoryTests(unittest.TestCase):
     def test_existing_workaround_does_not_duplicate_flag(self):
         args = json.loads(self.run_from_non_git_directory(["--skip-git-repo-check"]).stdout)
         self.assertEqual(args.count("--skip-git-repo-check"), 1)
+
+    def test_model_option_overrides_configured_codex_model(self):
+        result = self.run_from_non_git_directory([], debug=True, cli_options=("--model", " override-model "))
+        args = json.loads(result.stdout)
+        self.assertEqual(args[-3:], ["-m", "override-model", "how to find large files?"])
+        self.assertNotIn("test-model", args)
+        self.assertIn("Model: override-model", result.stderr)
+
+    def test_blank_model_option_is_rejected(self):
+        result = self.run_from_non_git_directory([], cli_options=("--model", "   "), expected_exit=2)
+        self.assertIn("Model cannot be empty", result.stderr)
+
+    def test_generic_cli_rejects_model_override(self):
+        result = self.run_from_non_git_directory(
+            [], module_type="cli", cli_options=("--model", "override-model"), expected_exit=2
+        )
+        self.assertIn("not supported for generic cli modules", result.stderr)
 
     def test_success_hides_codex_diagnostics_but_keeps_answer(self):
         result = self.run_from_non_git_directory([])
@@ -150,6 +173,23 @@ class CodexDirectoryTests(unittest.TestCase):
                     if process.poll() is None:
                         process.kill()
                         process.communicate()
+
+
+class BuiltinModelTests(unittest.TestCase):
+    def test_configured_model_is_passed_to_each_local_agent(self):
+        flags = {
+            "gemini": "-m",
+            "claude": "--model",
+            "opencode": "-m",
+            "codex": "-m",
+            "cursor": "--model",
+            "grok": "-m",
+        }
+        for module_type, flag in flags.items():
+            with self.subTest(module_type=module_type):
+                module = ModuleConfig(module_type, module_type, {"model": "chosen-model"})
+                argv = build_argv(module, "Question")
+                self.assertEqual(argv[argv.index(flag) + 1], "chosen-model")
 
 
 if __name__ == "__main__":

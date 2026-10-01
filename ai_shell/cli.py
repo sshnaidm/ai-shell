@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 import typer
@@ -58,6 +59,9 @@ def get_tmux_context(lines: int | None = None, *, screens: int = 1) -> str:
 def main(
     prompt: list[str] | None = typer.Argument(None, help="Question for the AI"),
     module: str | None = typer.Option(None, "-m", "--module", help="Module name from ~/.ai-shell.toml"),
+    model: str | None = typer.Option(
+        None, "--model", help="Model for this call; overrides the selected module's model"
+    ),
     context: bool = typer.Option(
         False,
         "-c",
@@ -127,6 +131,13 @@ def main(
         console.print(f"[bold red]Error:[/bold red] Unknown module `{chosen}`. Known: {known}.")
         raise typer.Exit(1)
     selected = app_config.modules[chosen]
+    if model is not None:
+        model = model.strip()
+        if not model:
+            raise typer.BadParameter("Model cannot be empty")
+        if selected.type == "cli":
+            raise typer.BadParameter("--model is not supported for generic cli modules; use tool-specific args")
+        selected = replace(selected, data={**selected.data, "model": model})
     output = app_config.output
     if output_format is not None:
         output.format = output_format
@@ -163,6 +174,8 @@ def main(
     if debug:
         captured = len(context_text or "")
         console.print(f"[dim]Module: {selected.name} ({selected.type})[/dim]")
+        if selected.data.get("model"):
+            console.print(f"[dim]Model: {selected.data['model']}[/dim]")
         console.print(f"[dim]Output format: {resolved_format.value}[/dim]")
         console.print(f"[dim]Captured {captured} characters of context...[/dim]")
         console.print(f"[dim]Prompt Preview:\n{full_prompt}[/dim]")
